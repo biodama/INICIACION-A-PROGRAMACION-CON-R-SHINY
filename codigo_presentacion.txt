@@ -1,0 +1,313 @@
+-- Apartado 2.2 - pág. 2
+
+### Parte cliente
+ui <- fluidPage(
+  
+  "1ª Aplicación Shiny"
+)
+
+### Parte servidor
+server <- function(input, output) {
+  
+  
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+
+-- Apartado 2.3 - pág. 5
+
+server <- function(input, output) {
+  
+    output$distPlot <- renderPlot({
+        # generate bins based on input$bins from ui.R
+      print(input$bins)
+        x    <- faithful[, 2]
+        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(x, breaks = bins, col = 'darkgray', border = 'white',
+             xlab = 'Waiting time to next eruption (in mins)',
+             main = 'Histogram of waiting times')
+    })
+  
+    observeEvent(input$bins,{
+      print(input$bins)
+    }) 
+}
+
+-- Apartado 2.3 - pág. 6
+
+server <- function(input, output) {
+  
+    output$distPlot <- renderPlot({
+        # generate bins based on input$bins from ui.R
+      print(input$bins)
+        x    <- faithful[, 2]
+        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(x, breaks = bins, col = 'darkgray', border = 'white',
+             xlab = 'Waiting time to next eruption (in mins)',
+             main = 'Histogram of waiting times')
+    })
+      
+    print(input$bins)
+     
+}
+
+server <- function(input, output) {
+  
+    output$distPlot <- renderPlot({
+        # generate bins based on input$bins from ui.R
+      print(input$bins)
+        x    <- faithful[, 2]
+        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(x, breaks = bins, col = 'darkgray', border = 'white',
+             xlab = 'Waiting time to next eruption (in mins)',
+             main = 'Histogram of waiting times')
+    })
+      
+    print(isolate(input$bins))
+     
+}
+
+
+-- Apartado 3.1 - pág. 9
+
+updateSelectInput(session = session, inputId = "id_s", label = "Selecciona", choices = c("a","b","c","d"), selected = "b")
+
+
+-- Apartado 3.3 - pág. 14
+
+ui <- fluidPage(
+
+  fluidRow(
+    column(1,""),
+    column(5, align="center",
+           textInput("id_t", "Etiqueta", placeholder = "Rellenar con texto"),
+           ),
+    column(5, align="center",
+           numericInput("id_n","Etiqueta", value = 2, min=0, max=10, step=1),
+           ),
+    column(1,"")
+  ),
+
+  fluidRow(
+    column(1,""),
+    column(5, align="center",
+           checkboxInput("id_c", "un check"),
+           ),
+    column(5, align="center",
+           selectInput("id_s", "Selecciona", choices = c(1:5)),
+           ),
+    column(1,"")
+  )
+
+)
+
+
+-- Apartado 3.4 - pág. 15
+
+ui <- fluidPage(
+  theme = bslib::bs_theme(
+    version = 5,
+    bg = "#FFFFFF",
+    fg = "#333333",
+    primary = "#005A8D",
+    secondary = "#6C757D",
+    base_font = font_collection("Arial", "sans-serif"),
+    heading_font = font_collection("Arial", "sans-serif"),
+    font_scale = 1.1
+  ),
+
+
+-- Apartado 4.2 - pág. 21
+
+  # Ejemplo supresión de reactividad (isolate)
+  observe({
+    print(c("isolate - id1:", isolate(input$id1)))
+    print(c("id3:", input$id3))
+  })
+
+
+-- Apartado 5.1 - pág. 23
+
+  datos <- reactive({
+
+    shiny::req(input$id_carga)
+    aux <- openxlsx::read.xlsx(xlsxFile=input$id_carga$datapath)
+    str(aux)
+
+    # Validación del formato del fichero
+    dup <- duplicated(names(aux))
+    shiny::validate(need(sum(dup)==0,paste("Hay variables duplicadas!:",names(aux)[dup])))
+
+    aux
+
+  })
+
+
+  -- Apartado 5.2 - pág. 24
+
+    output$id_descarga <- downloadHandler(
+    filename = function() {
+      paste("curso_R_Shiny", ".xlsx", sep="")
+    },
+    content = function(file) {
+      sub_base <- airquality[ ,c(1:3)]
+      openxlsx::write.xlsx(sub_base, file)
+    }
+  )
+
+
+  -- Apartado 5.3 - pág. 26
+
+ui <- shinymanager::secure_app(
+  fluidPage(
+
+    )
+  )
+
+  -- Apartado 5.3 - pág. 27
+
+server <- function(input, output) {
+
+  # Definimos usuarios y contraseñas
+  credentials <- data.frame(
+    user = c("admin", "user"),
+    password = c("123", "abc"),
+    stringsAsFactors = FALSE
+  )
+
+  secure_server(check_credentials(credentials))
+
+
+  -- Apartado 5.3 - pág. 28
+
+  ######### En el proceso de registro ##########
+  credentials <- data.frame(
+    user = c(input$usuario),
+    password = c(scrypt::hashPassword(input$contrasena)),
+    is_hashed_password = TRUE,
+    stringsAsFactors = FALSE
+  )
+
+  saveRDS(credentials, "usuarios.rds")
+
+  ######### Al iniciar la aplicación ##########
+  credentials <- readRDS("usuarios.rds")
+
+  res_auth <- shinymanager::secure_server(
+    check_credentials = shinymanager::check_credentials(credentials)
+  )
+
+
+  -- Apartado 5.4 - pág. 30
+
+    # upload de fichero de datos
+  datos <- reactive({
+
+    shiny::req(input$id_carga)
+    aux <- openxlsx::read.xlsx(xlsxFile=input$id_carga$datapath)
+    str(aux)
+
+    # Validación del formato del fichero
+    dup <- duplicated(names(aux))
+    shiny::validate(need(sum(dup)==0,paste("Hay variables duplicadas!:",names(aux)[dup])))
+
+    aux
+
+  })
+
+
+ -- Apartado 6.1- pág. 33
+
+ output$id_tablaDT <- DT::renderDT( airquality )
+
+
+ -- Apartado 6.1- pág. 34
+
+    ## Con filtrado
+    output$id_tablaDT <- DT::renderDT( datatable(datos, filter = "top") )
+
+
+ -- Apartado 6.1- pág. 35
+
+    ## Editable
+    output$id_tablaDT <- DT::renderDT( datatable(datos, editable = TRUE) )
+
+
+-- Apartado 6.1- pág. 36    
+
+    ## Capturar modificaciones de la tabla
+    observeEvent(input$id_tablaDT_cell_edit, {
+      celda <- input$id_tablaDT_cell_edit
+      print(c("Valor modificado:", celda))
+      datos[celda$row, celda$col] <<- celda$value
+    })
+
+    ## Con Descarga de datos
+    output$id_tablaDT <- DT::renderDT(
+                                datatable(datos,
+                                          extensions = "Buttons",
+                                          options = list(
+                                                         dom = 'Bfrtip',  # muestra botones
+                                                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+                                                        )
+                                         )
+                                )
+
+
+-- Apartado 7.1- pág. 40    
+
+library(shiny)
+library(shinydashboard)
+
+### Parte cliente
+ui <- dashboardPage(
+  dashboardHeader(),
+  dashboardSidebar(),
+  dashboardBody()
+)
+
+
+-- Apartado 7.2- pág. 43 
+
+  # tabsetPanel si tiene 'id'
+  observeEvent(input$id_tabset,{
+
+    if (input$id_tabset=="Entrada de datos") {
+      print(c("Panel seleccionado:", input$id_tabset))
+    }
+    if (input$id_tabset=="Resultados") {
+      print(c("Panel seleccionado:", input$id_tabset))
+    }
+
+  })
+
+ 
+-- Apartado 7.3- pág. 44
+
+library("shiny")
+
+shinyUI(
+  (htmlOutput("id_app"))
+)
+
+    output$id_app <- renderUI({
+      bootstrapPage(ui_pantalla1())
+    })
+
+
+-- Apartado 8.3- pág. 50
+
+library('shiny')
+runApp('/Volumes/LaCie/JGP/PC-ISCIII-2/jgp/Personal/FORMACION/Cursos impartidos/2026/Introducion a R Shiny/temario/7.3.navegacion',
+       launch.browser = TRUE )
+
+#!/bin/bash
+Rscript --vanilla mi_app.R
