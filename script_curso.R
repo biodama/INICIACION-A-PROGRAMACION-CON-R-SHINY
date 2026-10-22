@@ -229,3 +229,65 @@ ggplot(mirar, aes(x = periodo, y = tasa,colour = tumor)) +
 ggplot(mirar, aes(x = periodo, y = tasa,color=sexo)) +
   geom_point()+geom_line()+scale_color_brewer(palette = "Dark2")
 
+g + theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.title = element_text(face = "bold"),
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        panel.grid.minor = element_blank())
+
+p1 <- ggplot(cancer2, aes(x = tumor, y = tasa)) + geom_boxplot() + coord_flip()
+p2 <- ggplot(mirar, aes(x = tasa)) + geom_histogram(bins = 20)
+
+(p1 / p2) + plot_annotation(title = "Distribución de la tasa de mortalidad",tag_levels = "A")
+
+p<-ggplot(cancer2,aes(x = periodo,y = tasa,shape=sexo,colour = tumor)) +
+  geom_line() +geom_point(size = 1)
+p
+
+cancer2$tumor <- factor(cancer2$tumor,levels = c("MAMA", "PROSTATA","COLORRECTAL"))
+
+p<-ggplot(cancer2,aes(x = periodo,y = tasa,shape=sexo,colour = tumor)) +
+  geom_line() +geom_point(size = 1)
+
+p
+
+load("data/peninsula.RData")
+
+ggplot(peninsula) +
+  geom_sf(aes(fill = NAME_1), alpha = 0.1, col = "grey80", show.legend = FALSE) +
+  geom_sf_text(aes(label = NAME_2), size = 3) +
+  theme_bw()
+
+paro <- fread("data/paro.csv", encoding = "UTF-8")
+paro[, `:=`(id, sub(" ", "0", format(Prov.id, width = 2)))]
+Paro <- subset(paro, Año == 2012 & Trimestre == "I")
+peninsula$id <- peninsula$CC_2
+peninsula.paro <- merge(peninsula, Paro, by = "id")
+
+head(peninsula.paro)
+
+mapa <- ggplot(peninsula.paro) +
+  geom_sf(aes(fill = Tasa.paro), colour = "grey80", size = 0.1) +
+  facet_grid(~Sexo) +
+  scale_fill_gradient("Tasa de paro", low = "aliceblue", high = "steelblue4") +
+  theme_bw()
+
+mapa
+
+library(plotly)
+library(ggiraph)
+
+ggplotly(mapa)
+
+mapa_tooltip <- ggplot(peninsula.paro,aes(fill = Tasa.paro,text = paste0(NAME_2, "<br>Tasa de paro: ", round(Tasa.paro,1), "%"))) +
+  geom_sf(colour = "grey80", size = 0.1) +
+  facet_grid(~Sexo) +
+  scale_fill_viridis_c("Tasa de paro") +
+  theme_minimal()
+
+ggplotly(mapa_tooltip, tooltip = "text")
+
+
+
+
+
